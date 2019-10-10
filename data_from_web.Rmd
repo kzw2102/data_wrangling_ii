@@ -1,0 +1,20 @@
+---
+title: "Reading data from the web"
+data: "10/10/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(rvest)
+library(httr)
+```
+
+# extracting data from the web; 
+```{r}
+url = "http://samhda.s3-us-gov-west-1.amazonaws.com/s3fs-public/field-uploads/2k15StateFiles/NSDUHsaeShortTermCHG2015.htm"
+drug_use_xml = read_html(url)
+
+```
+
