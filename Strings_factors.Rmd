@@ -1,0 +1,42 @@
+---
+title: "Strings_factors"
+date: 10/15/19
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(rvest)
+library(p8105.datasets)
+```
+
+# string manipulation
+```{r}
+string_vec=c("my","name", "is", "kelly")
+
+str_detect(string_vec, "m")
+```
+
+```{r}
+str_replace(string_vec, "m", "M")
+```
+
+
+str_detect means detecting a pattern inside a string 
+there are a lot of "str_ " functions, and you can scroll through to see which ones exist in which. 
+
+```{r}
+string_vec = c(
+  "i think we all rule for participating",
+  "i think i have been caught",
+  "i think this will be quite fun actually",
+  "it will be fun, i think"
+  )
+
+str_detect(string_vec, "^i think") #starts with i think
+str_detect(string_vec, "i think$") #ends with i think
+```
+starts with "i think" and which ones ends with "i think"
+the ^ at the beginning means its the start of the string variable. 
