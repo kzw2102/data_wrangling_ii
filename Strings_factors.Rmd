@@ -40,3 +40,90 @@ str_detect(string_vec, "i think$") #ends with i think
 ```
 starts with "i think" and which ones ends with "i think"
 the ^ at the beginning means its the start of the string variable. 
+
+```{r}
+string_vec = c(
+  "Y'all remember Pres. HW Bush?",
+  "I saw a green bush",
+  "BBQ and Bushwalking at Molonglo Gorge",
+  "BUSH -- LIVE IN CONCERT!!"
+  )
+
+str_detect(string_vec,"[Bb]ush") #detect words with capitol B or lowercase b, but not all caps 
+```
+```{r}
+string_vec = c(
+  '7th inning stretch',
+  '1st half soon to begin. Texas won the toss.',
+  'she is 5 feet 4 inches tall',
+  '3AM - cant sleep :('
+  )
+
+str_detect(string_vec, "^[0-9][a-zA-Z]") #a number followed by any letter (uppercase or lowercase letters) 
+```
+
+```{r}
+string_vec = c(
+  'Its 7:11 in the evening',
+  'want to go to 7-11?',
+  'my flight is AA711',
+  'NetBios: scanning ip 203.167.114.66'
+  )
+
+str_detect(string_vec, "7.11") # the "." represents a character. so like 7:11 should work
+```
+```{r}
+string_vec = c(
+  'The CI is [2, 5]',
+  ':-]',
+  ':-[',
+  'I found the answer on pages [6-7]'
+  )
+
+str_detect(string_vec, "\\[") #if you want to actually use a square bracket or acutally a "." in the function. Here we are just lookng for an open square bracket
+```
+
+## pulse data
+```{r}
+pulse_data = 
+  haven::read_sas("./data/public_pulse_data.sas7bdat") %>%
+  janitor::clean_names() %>%
+  pivot_longer(
+    bdi_score_bl:bdi_score_12m,
+    names_to = "visit", 
+    names_prefix = "bdi_score_",
+    values_to = "bdi") %>%
+  select(id, visit, everything()) %>%
+  mutate(
+    visit = str_replace(visit, "bl", "00m"),
+    visit = fct_relevel(visit, str_c(c("00", "01", "06", "12"), "m"))) %>%
+  arrange(id, visit)
+
+print(pulse_data, n = 12)
+```
+use str_replace function in the mutate step
+
+```{r}
+nsduh_url = "http://samhda.s3-us-gov-west-1.amazonaws.com/s3fs-public/field-uploads/2k15StateFiles/NSDUHsaeShortTermCHG2015.htm"
+
+table_marj = 
+  read_html(nsduh_url) %>% 
+  html_nodes(css = "table") %>% 
+  .[[1]] %>%
+  html_table() %>%
+  slice(-1) %>%
+  as_tibble()
+```
+
+```{r}
+table_marj %>% 
+  select(-contains("P value")) %>% 
+  pivot_longer(
+    -State,
+    names_to="age_year",
+    values_to="percent"
+  ) %>% 
+  separate(age_year, into = c("age", "year"), sep= "\\(") %>% 
+  
+```
+
