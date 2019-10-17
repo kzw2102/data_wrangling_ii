@@ -124,6 +124,146 @@ table_marj %>%
     values_to="percent"
   ) %>% 
   separate(age_year, into = c("age", "year"), sep= "\\(") %>% 
-  
+  mutate(
+    year = str_replace(year, "\\)", ""),
+    percent = str_replace(percent, "[a-c]$", ""),
+    percent=as.numeric(percent)
+  )
 ```
+
+
+## Factor
+```{r}
+vec_sex = factor(c("male", "male", "female", "female"))
+vec_sex
+
+as.numeric(vec_sex)
+## but this gives different results
+vec_sex = relevel(vec_sex, ref = "male")
+vec_sex
+
+as.numeric(vec_sex)
+```
+
+```{r}
+weather_df = 
+  rnoaa::meteo_pull_monitors(
+    c("USW00094728", "USC00519397", "USS0023B17S"),
+    var = c("PRCP", "TMIN", "TMAX"), 
+    date_min = "2017-01-01",
+    date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY", 
+                      USC00519397 = "Waikiki_HA",
+                      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+```
+
+```{r}
+weather_df %>%
+  mutate(name = forcats::fct_relevel(name, c("Waikiki_HA", "CentralPark_NY", "Waterhole_WA"))) %>% 
+  ggplot(aes(x = name, y = tmax)) + 
+  geom_violin(aes(fill = name), color = "blue", alpha = .5) + 
+  theme(legend.position = "bottom")
+```
+
+if we want waterhole first
+```{r}
+weather_df %>%
+  mutate(name = forcats::fct_relevel(name, c("Waterhole_WA"))) %>% 
+  ggplot(aes(x = name, y = tmax)) + 
+  geom_violin(aes(fill = name), color = "blue", alpha = .5) + 
+  theme(legend.position = "bottom")
+```
+# use reorder instead
+```{r}
+weather_df %>%
+  mutate(name = forcats::fct_reorder(name, tmax)) %>% 
+  ggplot(aes(x = name, y = tmax)) + 
+  geom_violin(aes(fill = name), color = "blue", alpha = .5) + 
+  theme(legend.position = "bottom")
+```
+reorder the name name with tmax. this function is saying look at hte facotrs that we have, and then find which one has the smallest median tmax, and thats one factor. then look at the next smallest median tmax, and so forth 
+
+
+#airbnb
+```{r}
+data("nyc_airbnb")
+
+nyc_airbnb %>%
+  filter(neighbourhood_group == "Manhattan") %>% 
+  mutate(
+    neighbourhood = fct_reorder(neighbourhood, price, na.rm = TRUE)) %>% 
+  ggplot(aes(x = neighbourhood, y = price)) +
+  geom_boxplot() +
+  coord_flip() + 
+  ylim(0, 1000)
+```
+reorder the neighborhood by price
+coord_flip(), takes thigns that were on the X axis now on the Y axis
+
+```{r}
+data("nyc_airbnb")
+
+nyc_airbnb %>%
+  filter(neighbourhood_group == "Queens") %>% 
+  mutate(
+    neighbourhood = fct_reorder(neighbourhood, price, na.rm = TRUE)) %>% 
+  ggplot(aes(x = neighbourhood, y = price)) +
+  geom_boxplot() +
+  coord_flip() + 
+  ylim(0, 1000)
+```
+
+what about factors in linear models?
+```{r}
+weather_df %>% 
+  mutate(name=forcats::fct_relevel(name, c("Waikiki_HA", "CentralPark_NY", "Waterhold_WA"))) %>% 
+  lm(tmax~name, data=.)
+```
+
+```{r}
+data("rest_inspec")
+
+rest_inspec %>% 
+  group_by(boro, grade) %>% 
+  summarize(n = n()) %>% 
+  spread(key = grade, value = n)
+
+rest_inspec =
+  rest_inspec %>%
+  filter(grade %in% c("A", "B", "C"), boro != "Missing") %>% 
+  mutate(boro = str_to_title(boro))
+
+rest_inspec %>% 
+  filter(str_detect(dba, "Pizza")) %>% 
+  group_by(boro, grade) %>% 
+  summarize(n = n()) %>% 
+  spread(key = grade, value = n)
+
+rest_inspec %>% 
+  filter(str_detect(dba, "[Pp][Ii][Zz][Zz][Aa]")) %>% 
+  group_by(boro, grade) %>% 
+  summarize(n = n()) %>% 
+  spread(key = grade, value = n)
+```
+
+```{r}
+rest_inspec %>% 
+  filter(str_detect(dba, "[Pp][Ii][Zz][Zz][Aa]")) %>%
+  mutate(
+    boro = fct_infreq(boro),
+    boro = replace(boro, which(boro == "Brooklyn"), "HipsterHQ")) %>%
+  ggplot(aes(x = boro, fill = grade)) + 
+  geom_bar() + 
+  scale_fill_viridis(discrete = TRUE)
+
+## gives a warning message -- trying to assign a factor variable that assigns a new variable 
+# using string replace ALMOST works --> it has now reported it back to string variable instead of keeping it as a vector variable 
+
+
+```
+
 
